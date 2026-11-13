@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5efe6 0%, #e8ddd0 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: rgba(255, 252, 245, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 32px;
+      padding: 40px;
+      max-width: 900px;
+      width: 100%;
+      box-shadow: 0 25px 60px rgba(100, 60, 30, 0.25), 0 0 0 1px rgba(180, 120, 80, 0.1);
+      border: 1px solid rgba(220, 180, 140, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #5a2d1a 0%, #8b1a1a 50%, #5a2d1a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h1 i {
+      -webkit-text-fill-color: initial;
+      color: #8b1a1a;
+      font-size: 28px;
+      background: rgba(139, 26, 26, 0.1);
+      padding: 10px;
+      border-radius: 14px;
+    }
+
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #4a3520;
+      margin-bottom: 14px;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h2 i {
+      color: #8b1a1a;
+      font-size: 14px;
+    }
+
+    /* Rooms List */
+    #roomsList {
+      background: rgba(245, 235, 220, 0.5);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(200, 170, 140, 0.2);
+    }
+
+    #roomsUl {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    #roomsUl li {
+      padding: 12px 18px;
+      background: rgba(255, 252, 245, 0.7);
+      border: 1px solid rgba(200, 170, 140, 0.2);
+      border-radius: 12px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 500;
+      color: #3d2b1a;
+    }
+
+    #roomsUl li:hover {
+      background: rgba(139, 26, 26, 0.08);
+      border-color: rgba(139, 26, 26, 0.25);
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(139, 26, 26, 0.08);
+    }
+
+    #roomsUl li span {
+      font-size: 13px;
+      color: #8a7a6a;
+      font-weight: 400;
+      background: rgba(200, 180, 160, 0.15);
+      padding: 2px 12px;
+      border-radius: 20px;
+    }
+
+    #roomsUl li.selected {
+      background: rgba(139, 26, 26, 0.12);
+      border-color: #8b1a1a;
+      box-shadow: 0 0 0 3px rgba(139, 26, 26, 0.08);
+    }
+
+    /* Inputs & Buttons */
+    input, button {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .input-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    input[type="text"], input[type="password"], input[type="file"] {
+      padding: 12px 18px;
+      border: 1.5px solid rgba(200, 170, 140, 0.3);
+      border-radius: 14px;
+      background: rgba(255, 252, 245, 0.7);
+      font-size: 14px;
+      color: #3d2b1a;
+      transition: all 0.25s ease;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    input[type="text"]:focus, input[type="password"]:focus {
+      outline: none;
+      border-color: #8b1a1a;
+      box-shadow: 0 0 0 4px rgba(139, 26, 26, 0.08);
+      background: #ffffff;
+    }
+
+    input::placeholder {
+      color: #b0a090;
+      font-weight: 300;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 14px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.2px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #8b1a1a 0%, #6b1414 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(139, 26, 26, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(139, 26, 26, 0.35);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-secondary {
+      background: rgba(200, 170, 140, 0.2);
+      color: #5a3d2a;
+      border: 1px solid rgba(200, 170, 140, 0.2);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(200, 170, 140, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #8b1a1a;
+      border: 1.5px solid rgba(139, 26, 26, 0.25);
+    }
+
+    .btn-outline:hover {
+      background: rgba(139, 26, 26, 0.06);
+      border-color: #8b1a1a;
+    }
+
+    .btn-back {
+      background: rgba(200, 170, 140, 0.15);
+      color: #5a3d2a;
+      border: 1px solid rgba(200, 170, 140, 0.2);
+      padding: 10px 18px;
+      font-size: 13px;
+    }
+
+    .btn-back:hover {
+      background: rgba(200, 170, 140, 0.3);
+      transform: translateX(-3px);
+    }
+
+    /* Login */
+    #login {
+      background: rgba(245, 235, 220, 0.5);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(200, 170, 140, 0.2);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+    }
+
+    #login label {
+      font-weight: 500;
+      color: #4a3520;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 160px;
+    }
+
+    #login label input {
+      flex: 1;
+    }
+
+    /* Chat */
+    #chat {
+      background: rgba(245, 235, 220, 0.4);
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid rgba(200, 170, 140, 0.15);
+    }
+
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chat-header .room-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      color: #4a3520;
+      font-size: 16px;
+    }
+
+    .chat-header .room-info i {
+      color: #8b1a1a;
+    }
+
+    #messages {
+      border: 1px solid rgba(200, 170, 140, 0.2);
+      border-radius: 16px;
+      height: 320px;
+      overflow-y: auto;
+      padding: 16px;
+      background: rgba(255, 252, 245, 0.6);
+      margin-bottom: 14px;
+    }
+
+    #messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #messages::-webkit-scrollbar-track {
+      background: rgba(200, 170, 140, 0.1);
+      border-radius: 10px;
+    }
+
+    #messages::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #8b1a1a 0%, #5a2d1a 100%);
+      border-radius: 10px;
+    }
+
+    .message {
+      padding: 10px 16px;
+      margin-bottom: 6px;
+      border-radius: 14px;
+      background: rgba(255, 252, 245, 0.7);
+      border: 1px solid rgba(200, 170, 140, 0.08);
+      animation: fadeIn 0.2s ease;
+      font-size: 14px;
+      color: #3d2b1a;
+      word-wrap: break-word;
+    }
+
+    .message strong {
+      color: #8b1a1a;
+      font-weight: 600;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-input-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .chat-input-area input[type="text"] {
+      flex: 3;
+      min-width: 160px;
+    }
+
+    .chat-input-area .file-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 252, 245, 0.7);
+      padding: 4px 12px 4px 4px;
+      border-radius: 14px;
+      border: 1.5px solid rgba(200, 170, 140, 0.2);
+    }
+
+    .chat-input-area .file-input-wrap input[type="file"] {
+      border: none;
+      padding: 8px 12px;
+      background: transparent;
+      min-width: unset;
+      flex: 1;
+    }
+
+    .chat-input-area .file-input-wrap input[type="file"]::file-selector-button {
+      background: rgba(139, 26, 26, 0.08);
+      border: none;
+      padding: 6px 14px;
+      border-radius: 10px;
+      color: #5a2d1a;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .chat-input-area .file-input-wrap input[type="file"]::file-selector-button:hover {
+      background: rgba(139, 26, 26, 0.15);
+    }
+
+    /* Modal */
+    #modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(60, 40, 25, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: modalFade 0.25s ease;
+    }
+
+    @keyframes modalFade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    #modalContent {
+      position: relative;
+      background: #faf5ee;
+      padding: 20px;
+      border-radius: 28px;
+      max-width: 92%;
+      max-height: 92%;
+      overflow: auto;
+      box-shadow: 0 30px 80px rgba(60, 40, 25, 0.4);
+      border: 1px solid rgba(220, 180, 140, 0.2);
+    }
+
+    #closeModal {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: rgba(139, 26, 26, 0.12);
+      color: #5a2d1a;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 16px;
+      transition: 0.25s;
+      z-index: 10;
+    }
+
+    #closeModal:hover {
+      background: #8b1a1a;
+      color: #fff;
+    }
+
+    #modalContent img, #modalContent audio, #modalContent video, #modalContent embed {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: 16px;
+      display: block;
+    }
+
+    /* Utilities */
+    .flex {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .mt-1 { margin-top: 10px; }
+    .gap-1 { gap: 8px; }
+
+    .text-muted {
+      color: #a09080;
+      font-size: 13px;
+    }
+
+    .glow {
+      box-shadow: 0 0 30px rgba(139, 26, 26, 0.05);
+    }
+
+    /* Hidden */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .container {
+        padding: 20px;
+        border-radius: 20px;
+      }
+
+      #login label {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .chat-input-area {
+        flex-direction: column;
+      }
+
+      .chat-input-area .file-input-wrap {
+        width: 100%;
+      }
+
+      #roomsList, #login, #chat {
+        padding: 14px;
+      }
+
+      .chat-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container glow" id="appContainer">
+    <!-- Header -->
+    <h1>
+      <i class="fas fa-comment-dots"></i>
+      Real-Time Chat
+    </h1>
+
+    <!-- Rooms List (Main Page) -->
+    <div id="roomsList">
+      <h2><i class="fas fa-door-open"></i> Available Rooms</h2>
+      <ul id="roomsUl"></ul>
+      <div class="input-group">
+        <input id="newRoomName" placeholder="Create new room..." />
+        <input id="newRoomPassword" type="password" placeholder="Password (optional)" />
+        <button class="btn btn-primary" id="createRoomBtn"><i class="fas fa-plus"></i> Create</button>
+        <button class="btn btn-secondary" id="refreshRooms"><i class="fas fa-sync-alt"></i> Refresh</button>
+      </div>
+    </div>
+
+    <!-- Login -->
+    <div id="login">
+      <label>
+        <i class="fas fa-user" style="color:#8b1a1a;"></i>
+        Your name:
+        <input id="username" placeholder="e.g. Hanna" />
+      </label>
+      <label id="roomPasswordLabel" class="hidden">
+        <i class="fas fa-lock" style="color:#8b1a1a;"></i>
+        Room password:
+        <input type="password" id="joinRoomPassword" placeholder="Enter room password..." />
+      </label>
+      <button class="btn btn-primary" id="connect" disabled>
+        <i class="fas fa-sign-in-alt"></i> Join Room
+      </button>
+    </div>
+
+    <!-- Chat Room -->
+    <div id="chat" class="hidden">
+      <div class="chat-header">
+        <div class="room-info">
+          <i class="fas fa-hashtag"></i>
+          <span id="currentRoomName">Room</span>
+          <span id="roomPrivateBadge" class="hidden" style="color:#8b1a1a;font-size:12px;">
+            <i class="fas fa-lock"></i> Private
+          </span>
+        </div>
+        <button class="btn btn-back" id="leaveRoomBtn">
+          <i class="fas fa-arrow-left"></i> Leave Room
+        </button>
+      </div>
+      <div id="messages"></div>
+      <div class="chat-input-area">
+        <input id="msgInput" placeholder="Type your message…" />
+        <button class="btn btn-primary" id="sendBtn"><i class="fas fa-paper-plane"></i> Send</button>
+        <div class="file-input-wrap">
+          <i class="fas fa-paperclip" style="color:#8b1a1a;"></i>
+          <input type="file" id="fileInput" />
+          <button class="btn btn-outline" id="uploadBtn" style="padding:8px 16px; font-size:13px;">
+            <i class="fas fa-upload"></i> Upload
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal">
+    <div id="modalContent">
+      <button id="closeModal"><i class="fas fa-times"></i></button>
+      <div id="fileViewer"></div>
+    </div>
+  </div>
+
+  <script>
+    const EMOTES = { ':smile:':'😄', ':thumbsup:':'👍', ':heart:':'❤️' };
+    function applyEmotes(text) { return text.replace(/:\w+:/g, c=>EMOTES[c]||c); }
+
+    let selectedRoom = null, selectedRoomData = null, ws = null;
+    let wsClosedDueToError = false;
+
+    async function loadRooms(){
+      try {
+        const resp = await fetch('/rooms/');
+        const rooms = await resp.json();
+        const ul = document.getElementById('roomsUl');
+        ul.innerHTML = '';
+        if (rooms.length === 0) {
+          ul.innerHTML = '<li style="cursor:default; color:#8a7a6a; justify-content:center;">No rooms available. Create one below!</li>';
+          return;
+        }
+        rooms.forEach(r => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span><i class="fas fa-hashtag" style="color:#8b1a1a;margin-right:6px;"></i>${r.name} ${r.private ? '<i class="fas fa-lock" style="color:#8b1a1a;font-size:12px;" title="Private room"></i>' : ''}</span>
+            <span><i class="fas fa-users"></i> ${r.users} user(s)</span>
+          `;
+          li.dataset.roomName = r.name;
+          li.dataset.roomPrivate = r.private;
+          li.onclick = () => {
+            selectRoom(r, li);
+          };
+          if (selectedRoom === r.name) {
+            li.classList.add('selected');
+          }
+          ul.appendChild(li);
+        });
+      } catch (err) {
+        console.error('Failed to load rooms:', err);
+      }
+    }
+
+    function selectRoom(r, liElement, prefillPassword = '') {
+      selectedRoom = r.name;
+      selectedRoomData = r;
+      document.querySelectorAll('#roomsUl li').forEach(el => el.classList.remove('selected'));
+      if (liElement) {
+        liElement.classList.add('selected');
+      }
+      document.getElementById('connect').disabled = false;
+
+      const passLabel = document.getElementById('roomPasswordLabel');
+      const passInput = document.getElementById('joinRoomPassword');
+      if (r.private) {
+        passLabel.classList.remove('hidden');
+        passInput.value = prefillPassword;
+        if (!prefillPassword) {
+          passInput.focus();
+        }
+      } else {
+        passLabel.classList.add('hidden');
+        passInput.value = '';
+      }
+    }
+
+    function selectRoomByName(name, prefillPassword = '') {
+      const items = document.querySelectorAll('#roomsUl li');
+      for (const item of items) {
+        if (item.dataset.roomName === name) {
+          const isPrivate = item.dataset.roomPrivate === 'true';
+          selectRoom({ name, private: isPrivate }, item, prefillPassword);
+          break;
+        }
+      }
+    }
+
+    function goToMainPage() {
+      // Close WebSocket if open
+      if (ws) {
+        ws.onclose = null; // avoid duplicate alert
+        ws.close();
+        ws = null;
+      }
+
+      // Show main page, hide chat
+      document.getElementById('login').classList.remove('hidden');
+      document.getElementById('roomsList').classList.remove('hidden');
+      document.getElementById('chat').classList.add('hidden');
+
+      // Clear messages
+      document.getElementById('messages').innerHTML = '';
+
+      // Reset room selection & connect button
+      document.getElementById('connect').disabled = true;
+      document.getElementById('roomPasswordLabel').classList.add('hidden');
+      document.getElementById('joinRoomPassword').value = '';
+      selectedRoom = null;
+      selectedRoomData = null;
+      document.querySelectorAll('#roomsUl li').forEach(el => el.classList.remove('selected'));
+
+      // Refresh rooms list
+      loadRooms();
+    }
+
+    document.getElementById('refreshRooms').onclick = loadRooms;
+
+    document.getElementById('createRoomBtn').onclick = async () => {
+      const name = document.getElementById('newRoomName').value.trim();
+      const pass = document.getElementById('newRoomPassword').value.trim();
+      if(!name) return alert('Enter room name');
+      
+      try {
+        const res = await fetch('/rooms/', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({name, password: pass || null})
+        });
+        if(!res.ok) {
+          const err = await res.json();
+          return alert('Error: ' + (err.detail || 'Could not create room'));
+        }
+        
+        document.getElementById('newRoomName').value = '';
+        document.getElementById('newRoomPassword').value = '';
+
+        await loadRooms();
+        selectRoomByName(name, pass);
+      } catch (err) {
+        alert('Failed to create room: ' + err.message);
+      }
+    };
+
+    document.getElementById('connect').onclick = async () => {
+      const username = document.getElementById('username').value.trim();
+      if (!username || !selectedRoom) return alert('Enter your name and select a room.');
+      
+      const password = (selectedRoomData && selectedRoomData.private)
+        ? document.getElementById('joinRoomPassword').value.trim()
+        : '';
+
+      if (selectedRoomData && selectedRoomData.private && !password) {
+        alert('This room is password-protected. Please enter the password.');
+        document.getElementById('joinRoomPassword').focus();
+        return;
+      }
+
+      // Pre-verify password & username
+      try {
+        const verifyRes = await fetch('/rooms/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: selectedRoom,
+            username: username,
+            password: password || null
+          })
+        });
+
+        if (!verifyRes.ok) {
+          const err = await verifyRes.json();
+          alert('Cannot join: ' + (err.detail || 'Verification failed.'));
+          if (verifyRes.status === 403) {
+            document.getElementById('joinRoomPassword').focus();
+          }
+          return;
+        }
+      } catch (err) {
+        console.warn('Verify check failed, proceeding to WS:', err);
+      }
+
+      wsClosedDueToError = false;
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${location.host}/ws/${encodeURIComponent(selectedRoom)}?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+      
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        // Show chat, hide main page
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('roomsList').classList.add('hidden');
+        document.getElementById('chat').classList.remove('hidden');
+
+        // Set room name in header
+        document.getElementById('currentRoomName').textContent = selectedRoom;
+        const badge = document.getElementById('roomPrivateBadge');
+        if (selectedRoomData && selectedRoomData.private) {
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      };
+
+      ws.onmessage = e => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'error') {
+            wsClosedDueToError = true;
+            alert(msg.message || 'An error occurred.');
+            return;
+          }
+          handleMessage(msg);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      ws.onclose = () => {
+        if (!wsClosedDueToError) {
+          alert('Disconnected from room.');
+        }
+        goToMainPage();
+      };
+    };
+
+    // Keyboard shortcuts
+    document.getElementById('username').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('connect').click();
+    });
+    document.getElementById('joinRoomPassword').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('connect').click();
+    });
+    document.getElementById('newRoomName').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('createRoomBtn').click();
+    });
+    document.getElementById('newRoomPassword').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('createRoomBtn').click();
+    });
+
+    // Leave Room button
+    document.getElementById('leaveRoomBtn').onclick = () => {
+      if (confirm('Are you sure you want to leave the room?')) {
+        goToMainPage();
+      }
+    };
+
+    document.getElementById('sendBtn').onclick = () => {
+      const t = applyEmotes(document.getElementById('msgInput').value);
+      if(!t.trim()) return;
+      ws.send(JSON.stringify({type:'text', message:t}));
+      document.getElementById('msgInput').value='';
+    };
+
+    document.getElementById('msgInput').addEventListener('keydown', (e) => {
+      if(e.key === 'Enter') document.getElementById('sendBtn').click();
+    });
+
+    document.getElementById('uploadBtn').onclick = async () => {
+      const file = document.getElementById('fileInput').files[0];
+      if(!file) return alert('Choose a file');
+      const fd=new FormData(); fd.append('file',file);
+      try {
+        const res = await fetch('/files/upload',{method:'POST',body:fd});
+        if (!res.ok) {
+          const err = await res.json();
+          return alert('Upload failed: ' + (err.detail || 'Unsupported file type'));
+        }
+        const info = await res.json();
+        ws.send(JSON.stringify({type:'file', url:info.url, filename:info.filename, content_type:info.content_type}));
+        document.getElementById('fileInput').value = '';
+      } catch (err) {
+        alert('Upload error: ' + err.message);
+      }
+    };
+
+    function handleMessage(msg){
+      if(msg.type==='text') appendText(msg.username,msg.message,msg.timestamp);
+      else if(msg.type==='file') appendFile(msg.username,msg.url,msg.filename,msg.content_type,msg.timestamp);
+      else if(msg.type==='system') appendSystemMessage(msg.message,msg.timestamp);
+    }
+
+    function appendSystemMessage(text, ts){
+      const d = document.createElement('div');
+      d.className = 'message system-message';
+      d.style.textAlign = 'center';
+      d.style.color = '#8a7a6a';
+      d.style.fontSize = '12px';
+      d.style.fontStyle = 'italic';
+      d.style.background = 'rgba(200, 170, 140, 0.1)';
+      d.style.border = 'none';
+      d.style.margin = '6px 0';
+      d.innerHTML = `<span><i class="fas fa-info-circle" style="margin-right:4px;"></i>${text}</span>`;
+      document.getElementById('messages').appendChild(d);
+      scrollBottom();
+    }
+
+    function appendText(user,text,ts){
+      const d=document.createElement('div');d.className='message';
+      d.innerHTML = `<strong>${user}</strong> <span class="text-muted">${new Date(ts).toLocaleTimeString()}</span><br>${text}`;
+      document.getElementById('messages').appendChild(d);
+      scrollBottom();
+    }
+
+    function appendFile(user,url,fn,type,ts){
+      const c=document.createElement('div');c.className='message';
+      let html = `<strong>${user}</strong> <span class="text-muted">${new Date(ts).toLocaleTimeString()}</span><br>`;
+      if(type.startsWith('image/')){
+        html+=`<img class="preview" src="${url}" title="${fn}" style="max-width:200px;border-radius:12px;cursor:pointer;margin-top:6px;border:1px solid rgba(200,170,140,0.2);"/>`;
+      } else {
+        html+=`<span class="file-link" style="color:#8b1a1a;cursor:pointer;font-weight:500;display:inline-flex;align-items:center;gap:6px;margin-top:4px;"><i class="fas fa-file"></i> ${fn}</span>`;
+      }
+      c.innerHTML=html;
+      document.getElementById('messages').appendChild(c);
+      scrollBottom();
+      if(type.startsWith('image/')){
+        c.querySelector('img').onclick=()=> openModal(type,url,fn);
+      } else {
+        c.querySelector('span').onclick=()=> openModal(type,url,fn);
+      }
+    }
+
+    function scrollBottom(){const m=document.getElementById('messages');m.scrollTop=m.scrollHeight;}
+
+    const modal=document.getElementById('modal'),
+          fv=document.getElementById('fileViewer');
+    document.getElementById('closeModal').onclick = ()=>{
+      fv.innerHTML=''; modal.style.display='none';
+    };
+    modal.onclick = (e) => {
+      if(e.target === modal) { fv.innerHTML=''; modal.style.display='none'; }
+    };
+
+    function openModal(type,url,fn){
+      let h='';
+      if(type.startsWith('image/')) h=`<img src="${url}" alt="${fn}"/>`;
+      else if(type.startsWith('audio/')) h=`<audio controls src="${url}"></audio>`;
+      else if(type.startsWith('video/')) h=`<video controls src="${url}"></video>`;
+      else if(type==='application/pdf') h=`<embed src="${url}" type="application/pdf" width="100%" height="600px"/>`;
+      else h=`<a href="${url}" download class="btn btn-primary" style="text-decoration:none;"><i class="fas fa-download"></i> Download ${fn}</a>`;
+      fv.innerHTML=h; modal.style.display='flex';
+    }
+
+    loadRooms();
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# Virtual Environments
+venv/
+.venv/
+env/
+.env/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*/__pycache__/
+*/*/__pycache__/
+*/*/*/__pycache__/
+
+# User uploaded media
+uploads/*
+!uploads/.gitkeep
+
+# Operating System & IDEs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
